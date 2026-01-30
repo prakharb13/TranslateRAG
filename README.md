@@ -22,7 +22,7 @@ User -> Streamlit UI -> FastAPI Backend -> Ollama (TranslateGemma 4B)
 ```bash
 # Install Ollama from https://ollama.com/download
 # Then pull TranslateGemma:
-ollama pull translategemma:4b
+ollama pull translategemma:latest
 ```
 
 ### 2. Clone and set up the project

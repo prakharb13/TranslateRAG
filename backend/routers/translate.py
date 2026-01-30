@@ -81,16 +81,15 @@ async def translate_document(
 async def ask_question(req: AskRequest):
     if req.use_rag:
         context_snippets = rag_service.query_similar(req.question, n_results=5)
+        context = "\n---\n".join(context_snippets) if context_snippets else ""
 
-        if context_snippets:
-            context = "\n---\n".join(context_snippets)
-            answer = model_service.answer_question(
-                question=req.question,
-                context=context,
-                source_language=req.source_language,
-                target_language=req.target_language,
-            )
-            return AskResponse(answer=answer, context_snippets=context_snippets, mode="rag")
+        answer = model_service.answer_question(
+            question=req.question,
+            context=context,
+            source_language=req.source_language,
+            target_language=req.target_language,
+        )
+        return AskResponse(answer=answer, context_snippets=context_snippets, mode="rag")
 
     translated = model_service.translate(
         text=req.question,
