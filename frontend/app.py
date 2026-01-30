@@ -63,37 +63,42 @@ with tab_translate:
 # --- Ask Questions Tab ---
 with tab_ask:
     st.subheader("Translate text or ask questions about documents")
-    st.caption("If documents are indexed, your input is treated as a question and answered using RAG. "
-               "If no documents are indexed, your input is translated directly.")
+
+    mode = st.radio("Mode", ["Translate", "Ask Question (RAG)"], horizontal=True, key="ask_mode")
 
     col1, col2 = st.columns(2)
     with col1:
-        ask_source_lang = st.selectbox("Document language", languages,
+        ask_source_lang = st.selectbox("Source language", languages,
                                        index=languages.index("English") if "English" in languages else 0,
                                        key="ask_src")
     with col2:
-        ask_target_lang = st.selectbox("Answer language", languages,
+        ask_target_lang = st.selectbox("Target language", languages,
                                        index=languages.index("French") if "French" in languages else 1,
                                        key="ask_tgt")
 
-    question = st.text_area("Enter text to translate or a question about indexed documents", height=150)
+    if mode == "Translate":
+        question = st.text_area("Text to translate", height=150, key="ask_input")
+    else:
+        question = st.text_area("Question about indexed documents", height=150, key="ask_input")
 
     if st.button("Submit", type="primary", disabled=not question.strip()):
         with st.spinner("Processing..."):
             try:
+                use_rag = mode == "Ask Question (RAG)"
                 r = httpx.post(
                     f"{API_BASE}/ask",
                     json={
                         "question": question,
                         "source_language": ask_source_lang,
                         "target_language": ask_target_lang,
+                        "use_rag": use_rag,
                     },
                     timeout=120,
                 )
                 r.raise_for_status()
                 data = r.json()
                 if data.get("mode") == "translation":
-                    st.markdown("**Translation** (no documents indexed — used direct translation):")
+                    st.markdown("**Translation:**")
                 else:
                     st.markdown("**Answer** (using RAG from indexed documents):")
                 st.text_area("Result", value=data["answer"], height=200, disabled=True)

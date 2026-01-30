@@ -79,23 +79,22 @@ async def translate_document(
 
 @router.post("/ask", response_model=AskResponse)
 async def ask_question(req: AskRequest):
-    context_snippets = rag_service.query_similar(req.question, n_results=5)
+    if req.use_rag:
+        context_snippets = rag_service.query_similar(req.question, n_results=5)
 
-    if not context_snippets:
-        translated = model_service.translate(
-            text=req.question,
-            source_language=req.source_language,
-            target_language=req.target_language,
-        )
-        return AskResponse(answer=translated, context_snippets=[], mode="translation")
+        if context_snippets:
+            context = "\n---\n".join(context_snippets)
+            answer = model_service.answer_question(
+                question=req.question,
+                context=context,
+                source_language=req.source_language,
+                target_language=req.target_language,
+            )
+            return AskResponse(answer=answer, context_snippets=context_snippets, mode="rag")
 
-    context = "\n---\n".join(context_snippets)
-
-    answer = model_service.answer_question(
-        question=req.question,
-        context=context,
+    translated = model_service.translate(
+        text=req.question,
         source_language=req.source_language,
         target_language=req.target_language,
     )
-
-    return AskResponse(answer=answer, context_snippets=context_snippets, mode="rag")
+    return AskResponse(answer=translated, context_snippets=[], mode="translation")

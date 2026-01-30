@@ -26,6 +26,7 @@ class AskRequest(BaseModel):
     question: str
     source_language: str
     target_language: str
+    use_rag: bool = True
 
 
 class AskResponse(BaseModel):
