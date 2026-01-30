@@ -1,0 +1,62 @@
+services:
+  # Ollama service - Runs TranslateGemma model
+  ollama:
+    image: ollama/ollama:latest
+    container_name: translaterag-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      # Named volume to persist downloaded models (~4GB)
+      - ollama-models:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # Backend service - FastAPI
+  backend:
+    build:
+      context: .                    # Build from root directory
+      dockerfile: backend/Dockerfile
+    container_name: translaterag-backend
+    ports:
+      - "8000:8000"
+    environment:
+      # Ollama connection - uses service name as hostname
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - MODEL_NAME=translategemma:latest
+      # Data persistence paths
+      - CHROMA_DB_PATH=/app/data/chroma_db
+      - UPLOAD_DIR=/app/uploads
+      # Embedding model for RAG
+      - EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
+    volumes:
+      # Bind mounts - persist data on your local machine
+      - ./data:/app/data           # ChromaDB vector database
+      - ./uploads:/app/uploads     # Uploaded documents
+    depends_on:
+      ollama:
+        condition: service_healthy  # Wait for Ollama to be healthy
+    restart: unless-stopped
+
+  # Frontend service - Streamlit
+  frontend:
+    build:
+      context: .                     # Build from root directory
+      dockerfile: frontend/Dockerfile
+    container_name: translaterag-frontend
+    ports:
+      - "8501:8501"
+    environment:
+      # Backend connection - uses service name as hostname
+      - BACKEND_URL=http://backend:8000/api
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+# Named volumes managed by Docker
+volumes:
+  ollama-models:
+    driver: local

@@ -50,7 +50,7 @@ def translate(
         f"You work with {source_language} ({src_code}) and {target_language} ({tgt_code}).\n\n"
         f"Instructions:\n"
         f"1. If the input is a question or request for information (e.g., 'tell me about...', 'what is...', 'explain...'), "
-        f"   first answer the question comprehensively using your knowledge, then provide that answer in {target_language}.\n"
+        f"   answer the question comprehensively using your knowledge directly in {target_language} ({tgt_code}).\n"
         f"2. If the input is a statement or regular text, simply translate it to {target_language}.\n"
         f"3. Always produce your final output in {target_language} ({tgt_code}) only.\n"
         f"4. For questions, provide detailed, informative answers (2-3 paragraphs minimum)."

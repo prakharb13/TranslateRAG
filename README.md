@@ -12,10 +12,70 @@ User -> Streamlit UI -> FastAPI Backend -> Ollama (TranslateGemma 4B)
 
 ## Prerequisites
 
+### For Docker Deployment (Recommended)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running
+- docker-compose (included with Docker Desktop)
+
+### For Local Development
 - Python 3.10+
 - [Ollama](https://ollama.com/) installed and running
 
-## Setup
+## Deployment Options
+
+Choose one of the following deployment methods:
+
+### Option A: Docker Deployment (Recommended)
+
+This runs everything in containers - simpler and consistent across environments.
+
+**1. Clone the repository**
+
+```bash
+git clone <repo-url>
+cd TranslateRAG
+```
+
+**2. Start all services with Docker Compose**
+
+```bash
+# Build and start all containers
+docker-compose up -d
+
+# Wait for Ollama to be healthy (check status)
+docker-compose ps
+
+# Pull the TranslateGemma model (~4GB, first time only)
+docker-compose exec ollama ollama pull translategemma:latest
+```
+
+**3. Access the application**
+
+- Frontend UI: http://localhost:8501
+- Backend API: http://localhost:8000/docs
+- Ollama: http://localhost:11434
+
+**Useful Docker commands:**
+
+```bash
+# View logs
+docker-compose logs -f
+
+# View logs for specific service
+docker-compose logs -f backend
+
+# Stop all services
+docker-compose down
+
+# Rebuild after code changes
+docker-compose up -d --build
+
+# Check service status
+docker-compose ps
+```
+
+---
+
+### Option B: Local Development Setup
 
 ### 1. Install Ollama and pull the model
 
@@ -51,7 +111,7 @@ cp .env.example .env
 # Edit .env if you need to change defaults (Ollama URL, model name, etc.)
 ```
 
-## Running
+**Running locally (Option B only)**
 
 You need three terminals (activate the venv in each):
 
@@ -96,9 +156,10 @@ UI will open at http://localhost:8501
 ## Project Structure
 
 ```
-RAGTRANSLATE/
+TranslateRAG/
 ├── backend/
-│   ├── main.py               # FastAPI app with CORS
+│   ├── Dockerfile             # Backend container definition
+│   ├── main.py                # FastAPI app with CORS
 │   ├── config.py              # Settings from environment variables
 │   ├── schemas.py             # Pydantic request/response models
 │   ├── routers/
@@ -109,11 +170,14 @@ RAGTRANSLATE/
 │       ├── rag_service.py     # ChromaDB + sentence-transformers
 │       └── document_service.py# PDF/TXT/DOCX parsing and chunking
 ├── frontend/
+│   ├── Dockerfile             # Frontend container definition
 │   └── app.py                 # Streamlit UI
-├── data/chroma_db/            # Vector database storage
-├── uploads/                   # Uploaded document files
-├── requirements.txt
-└── .env.example
+├── data/chroma_db/            # Vector database storage (persisted)
+├── uploads/                   # Uploaded document files (persisted)
+├── docker-compose.yml         # Multi-container orchestration
+├── requirements.txt           # Python dependencies
+├── .env.example              # Environment variables template
+└── README.md
 ```
 
 ## API Endpoints
@@ -127,3 +191,68 @@ RAGTRANSLATE/
 | GET | `/api/documents` | List indexed documents |
 | DELETE | `/api/documents/{id}` | Remove a document from the index |
 | GET | `/api/languages` | List supported languages |
+
+---
+
+## Docker Architecture
+
+When running with Docker, the application consists of three containers:
+
+```
+┌─────────────────┐
+│   Frontend      │ :8501 (Streamlit)
+│  (Container)    │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│    Backend      │ :8000 (FastAPI)
+│  (Container)    │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│     Ollama      │ :11434 (TranslateGemma)
+│  (Container)    │
+└─────────────────┘
+```
+
+**Docker Networking:**
+- Containers communicate via Docker's internal network using service names
+- Frontend connects to backend at `http://backend:8000`
+- Backend connects to Ollama at `http://ollama:11434`
+
+**Data Persistence:**
+- `./data` → ChromaDB vector database
+- `./uploads` → Uploaded documents
+- `ollama-models` → Downloaded Ollama models (Docker volume)
+
+**Security:**
+- Containers run as non-root user (UID 1000)
+- No secrets baked into images (configured via environment variables)
+
+---
+
+## Deployment Notes
+
+### Local Development
+- Use Docker for consistent environment
+- Data persists in local folders (`./data`, `./uploads`)
+- Model downloaded once and cached
+
+### Production (EC2)
+- Same Docker setup works on EC2
+- Use security groups to control access
+- Consider using reverse proxy (Nginx) for HTTPS
+- Set up proper backup for `./data` and `./uploads`
+
+### Environment Variables
+
+Configure via `docker-compose.yml` or `.env` file:
+
+- `OLLAMA_BASE_URL` - Ollama API endpoint
+- `MODEL_NAME` - Ollama model name
+- `CHROMA_DB_PATH` - ChromaDB storage path
+- `UPLOAD_DIR` - Document upload directory
+- `EMBEDDING_MODEL` - Sentence transformer model
+- `BACKEND_URL` - Backend API URL (frontend only)

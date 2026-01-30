@@ -1,7 +1,10 @@
 import streamlit as st
 import httpx
+import os
 
-API_BASE = "http://localhost:8000/api"
+# Read backend URL from environment variable (for Docker)
+# Defaults to localhost for local development
+API_BASE = os.getenv("BACKEND_URL", "http://localhost:8000/api")
 
 st.set_page_config(page_title="TranslateRAG", layout="wide")
 st.title("TranslateRAG")
