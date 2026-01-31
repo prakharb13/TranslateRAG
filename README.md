@@ -43,46 +43,17 @@ User -> Streamlit UI -> FastAPI Backend -> Ollama (TranslateGemma 4B)
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running
 - docker-compose (included with Docker Desktop)
 
-## Deployment
+## How to Use
 
-### Local (Docker)
+### Option 1: Use the Live EC2 Deployment
 
-**1. Clone and start**
+The app is already deployed on AWS EC2 (Ubuntu, t3.large) and ready to use. Simply open the links above in your browser. Contact the owner if the server is not running.
 
-```bash
-git clone <repo-url>
-cd TranslateRAG
-docker compose up -d --build
-```
+> Note: Data uploaded to the EC2 server is shared and not private.
 
-**2. Pull the translation model (~4GB, first time only)**
+### Option 2: Run Locally with Docker
 
-```bash
-docker exec translaterag-ollama ollama pull translategemma:latest
-```
-
-**3. Access the app**
-
-- Frontend: http://localhost:8501
-- Backend API docs: http://localhost:8000/docs
-
-### AWS EC2
-
-**1. Launch an EC2 instance**
-- Ubuntu AMI, **t3.large** (8GB RAM) or bigger
-- Open ports 22 (SSH), 8501 (frontend), 8000 (backend) in the security group
-
-**2. SSH in and install Docker**
-
-```bash
-ssh -i your-key.pem ubuntu@<ec2-ip>
-sudo apt update && sudo apt install -y docker.io docker-compose-v2
-sudo systemctl start docker && sudo systemctl enable docker
-sudo usermod -aG docker $USER
-# Log out and back in
-```
-
-**3. Clone, build, and start**
+If you want full control over your data and privacy, run everything locally:
 
 ```bash
 git clone <repo-url>
@@ -91,7 +62,9 @@ docker compose up -d --build
 docker exec translaterag-ollama ollama pull translategemma:latest
 ```
 
-**4. Access the app** at `http://<ec2-ip>:8501`
+Access the app at http://localhost:8501
+
+All data stays on your machine in `./data` and `./uploads`.
 
 **Useful Docker commands:**
 
