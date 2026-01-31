@@ -27,7 +27,7 @@ LANGUAGE_CODES = {
     "Vietnamese": "vi",
 }
 
-_client = ollama.Client(host=OLLAMA_BASE_URL)
+_client = ollama.Client(host=OLLAMA_BASE_URL, timeout=600)
 logger.info(f"🔌 Ollama client initialized - connecting to: {OLLAMA_BASE_URL}")
 logger.info(f"🤖 Using model: {MODEL_NAME}")
 
