@@ -58,7 +58,7 @@ async def translate_document(
     if not text.strip():
         raise HTTPException(400, "No text could be extracted from the document.")
 
-    chunks = document_service.chunk_text(text, chunk_size=1000, overlap=0)
+    chunks = document_service.chunk_text(text, chunk_size=3000, overlap=0)
 
     translated_chunks: List[str] = []
     for chunk in chunks:

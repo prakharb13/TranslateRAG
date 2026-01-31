@@ -96,7 +96,7 @@ with tab_ask:
                         "target_language": ask_target_lang,
                         "use_rag": use_rag,
                     },
-                    timeout=120,
+                    timeout=600,
                 )
                 r.raise_for_status()
                 data = r.json()
@@ -127,7 +127,7 @@ with tab_docs:
                 r = httpx.post(
                     f"{API_BASE}/documents/upload",
                     files={"file": (uploaded.name, uploaded.getvalue(), uploaded.type)},
-                    timeout=120,
+                    timeout=600,
                 )
                 r.raise_for_status()
                 info = r.json()
