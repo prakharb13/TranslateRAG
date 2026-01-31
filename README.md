@@ -1,6 +1,6 @@
 # TranslateRAG
 
-A RAG-enhanced translation app using Google's TranslateGemma 4B model via Ollama. Upload domain-specific documents to improve translation quality for specialized terminology.
+A multilingual translation and Q&A app powered by Google's TranslateGemma 4B model via Ollama, supporting 20 languages. Uses RAG with ChromaDB to improve translation quality using domain-specific documents. Fully containerized with Docker Compose (Streamlit + FastAPI + Ollama) for deployment on local machines or AWS EC2.
 
 ## Architecture
 
